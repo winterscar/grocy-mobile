@@ -1,0 +1,29 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src/dev"
+  "src/main"
+  "src/test"]
+
+ :dependencies
+ [[re-frame "0.12.0"]
+  [superstructor/re-frame-fetch-fx "0.0.2"]]
+ 
+ :dev-http { 8080 {:root "public/"}}
+ 
+ :builds
+ {:mobile
+  {:target :browser
+   :modules {:main {:init-fn grocy.mobile.main/init!}}
+   :devtools {:after-load grocy.mobile.main/reload!}}}}
+
+
+;  :builds
+;  {:mobile
+;   {:target :browser
+;    :modules {:shared {:entries []}
+;              :main {:init-fn grocy.mobile.main/init! :depends-on #{:shared}}
+;              :barcode-scanner {:init-fn grocy.mobile.workers.barcode-scanner/init!
+;                                :depends-on #{:shared}
+;                                :web-worker true}}
+;    :devtools {:browser-inject :main
+;               :after-load grocy.mobile.main/reload!}}}}

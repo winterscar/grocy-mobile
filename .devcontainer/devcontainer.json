@@ -1,0 +1,21 @@
+// If you want to run as a non-root user in the container, see .devcontainer/docker-compose.yml.
+// See here https://code.visualstudio.com/docs/remote/containers#_sharing-git-credentials-with-your-container
+// for using git in this container
+{
+	"name": "Clojurescript Development",
+
+	"image": "clojure:openjdk-14-tools-deps-alpine",
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [8080, 8777, 9630],
+
+	"settings": { 
+		"terminal.integrated.shell.linux": "/bin/ash"
+  },
+
+  // Install git and add copy across my ssh identity. 
+	"postCreateCommand": "apk update && apk add git openssh npm && npm i",
+
+	// Add the IDs of extensions you want installed when the container is created in the array below.
+	"extensions": ["betterthantomorrow.calva"]
+}

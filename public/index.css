@@ -1,0 +1,119 @@
+body {
+  max-width: 500px;
+}
+
+.card-picker {
+  display: flex;
+  flex-direction: row;
+  max-width: 300px;
+  overflow-x: scroll;
+  -ms-overflow-style: none;
+}
+
+.card-picker::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  background-color: blueviolet;
+  padding: 15px 10px; 
+  border-radius: 5px;
+  color: white;
+  margin: 0 4px
+}
+
+
+/* ============================================ */
+
+.roller {
+  touch-action: none;
+  text-align: center;
+  font: 4rem 'roboto, sans-serif';
+  display: flex;
+  flex-direction: row;
+  height: 4rem;
+  line-height: 4rem;
+  vertical-align: middle;
+}
+
+.roller > div {
+  width: 5rem;
+}
+
+.roller-2 {
+  font-size: 2rem;
+  color: #cccccc;
+}
+
+.roller-1 {
+  font-size: 3rem;
+  color: #7e7e7e;
+}
+
+.ring {
+  transform-style: preserve-3d;
+  width: 200px;
+  height: 100px;
+}
+
+.plane {
+  touch-action: none;
+  position: absolute;
+  top: 0;
+  left:0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 3rem;
+  color: black;
+  backface-visibility: hidden;
+  text-align: center;
+  width: 50px;
+}
+
+
+.ring > .one {
+  transform: translateX(75px) translateZ(100px);
+}
+
+.ring > .two {
+  transform: translateX(75px) rotateY(30deg) translateZ(100px);
+}
+
+.ring > .three {
+  transform: translateX(75px) rotateY(60deg) translateZ(100px);
+}
+
+.ring > .four {
+  transform: translateX(75px) rotateY(90deg) translateZ(100px);
+}
+
+.ring > .five {
+  transform: translateX(75px) rotateY(120deg) translateZ(100px);
+}
+
+.ring > .six {
+  transform: translateX(75px) rotateY(150deg) translateZ(100px);
+}
+
+.ring > .seven {
+  transform: translateX(75px) rotateY(180deg) translateZ(100px);
+}
+
+.ring > .eight {
+  transform: translateX(75px) rotateY(210deg) translateZ(100px);
+}
+
+.ring > .nine {
+  transform: translateX(75px) rotateY(-120deg) translateZ(100px);
+}
+
+.ring > .ten {
+  transform: translateX(75px) rotateY(-90deg) translateZ(100px);
+}
+
+.ring > .eleven {
+  transform: translateX(75px) rotateY(300deg) translateZ(100px);
+}
+
+.ring > .twelve {
+  transform: translateX(75px) rotateY(330deg) translateZ(100px);
+}
