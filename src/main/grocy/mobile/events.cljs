@@ -59,8 +59,8 @@
      (dispatch [:lookup code]))
    (assoc db :barcode code)))
 
-(def grocy-api "https://grocy.pasquet.co/api")
-(def grocy-api-key "L6DHnl4169PFTjaTsMFIDkmMHXwoqyuTmy2sDPtcIZLqkgJsfC")
+(def grocy-api "")
+(def grocy-api-key "")
 
 (reg-event-fx
  :lookup

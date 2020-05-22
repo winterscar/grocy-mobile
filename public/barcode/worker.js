@@ -32,7 +32,6 @@ const Scanner = mixin => {
       mod.HEAP8.set(imgData, buf);
       const results = [];
       if (api.scanQrcode(buf, width, height)) {
-
         const res_addr = api.getScanResults();
         results.push(utf8BufferToString(mod.HEAP8, res_addr));
         api.deleteBuffer(res_addr);
@@ -48,34 +47,29 @@ const Scanner = mixin => {
 };
 
 var scanner;
-var zone = {};
+var zone;
 
-const loadImage = src => {
+const loadImage = (src, search) => {
   // turn data from ImageBitmap to ImageData
-  let width  = src.width  * zone.w
-  let height = src.height * zone.h
-  let sx     = src.width  * zone.x
-  let sy     = src.height * zone.y
+  let width  = search.w
+  let height = search.h
+  let sx     = search.x
+  let sy     = search.y
   let offscreen = new OffscreenCanvas(width, height);
   let ctx = offscreen.getContext("2d");
   ctx.drawImage(src, sx, sy, width, height, 0, 0, width, height);
-  return {
-    imageData: ctx.getImageData(0, 0, width, height).data,
-    width,
-    height,
-  }
+  return ctx.getImageData(0, 0, width, height)
 } 
 
 self.onmessage = async e => {
     // Initializing.
-    const data = e.data
-    if(data.init){
-      scanner = await Scanner({locateFile: file => ('/barcode/' + file)});
-      console.log('loaded scanner');
-      zone = {w: data['w-pct'], h: data['h-pct'], x: data['left-pct'], y: data['top-pct']};
-      return;
+    const msg = e.data
+    if(msg.type === "init"){
+      scanner = await Scanner({locateFile: file => ('/barcode/' + file)});;
+      self.postMessage({type: 'ready'});
+    } else if (msg.type === "frame"){
+      const { data, width, height } = loadImage(msg.frame, msg.search);
+      const res = scanner.scanQrcode(data, width, height);
+      self.postMessage({type: 'scan', codes: res});
     }
-    const { imageData, width, height } = loadImage(data);
-    const res = scanner.scanQrcode(imageData, width, height)
-    self.postMessage(res);
 };

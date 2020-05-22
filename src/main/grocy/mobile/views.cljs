@@ -20,9 +20,7 @@
 
 (def search-area {:top-pct 0.3 :left-pct 0 :h-pct 0.4 :w-pct 1})
 
-(defn main
-  []
+(defn main []
   [:div {:style (:wrapper style)}
-   [barcode-scanner search-area]
-   [:button {:onClick #(rf/dispatch [:scan "4060800130754"])} "scan"]
+   [barcode-scanner {:style (:barcode-scanner style)}]
    [:div @(rf/subscribe [:barcode])]])

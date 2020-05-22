@@ -1,32 +1,26 @@
 (ns grocy.mobile.components.barcode.scanner
   (:require
-   [reagent.core :as r]
    [re-frame.core :as rf]
    [shadow.resource :as rc]))
 
-(defonce style
-  {:video-element
-   {:width "100%"
-    :background-color "#665"}})
-
-(def beep (rc/inline "./scan_sound"))
+;; ----- Util functions ----------------------------------------------------------------------------
 
 (defn play-beep
   []
-  (-> (js/Audio. beep) .play))
+  (let [beep (rc/inline "./scan_sound")]
+    (-> (js/Audio. beep) .play)))
 
-(defonce state
-  (atom
-   {:canvas nil
-    :video nil}))
+;; -------------------------------------------------------------------------------------------------
 
-(defonce rstate
-  (r/atom {:video nil :running false}))
+;; ----- Camera -> Video ---------------------------------------------------------------------------
+
+(defonce grabber (atom nil))
+(defonce video-ref (atom nil))
 
 (defn handle-video-success [s ref]
   (set! (.-srcObject ref) s)
-  (swap! state assoc :frame-grabber (js/ImageCapture. (first (. s getVideoTracks))))
-  (swap! state assoc :video ref))
+  (reset! grabber (js/ImageCapture. (first (. s getVideoTracks))))
+  (reset! video-ref ref))
 
 (defn handle-video-error [error] (println "Error getting video: " (.-message error)))
 
@@ -42,36 +36,75 @@
           (.then #(handle-video-success % ref))
           (.catch handle-video-error)))))
 
-(declare scan-frame)
+;; -------------------------------------------------------------------------------------------------
 
-(defn process-result [msg]
-  (if-let [data (seq (.-data msg))]
-    (do 
+;; ----- Barcode scanning --------------------------------------------------------------------------
+
+;; Initialize the web-worker and start listening for events
+(declare process-result)
+(def worker (js/Worker. "/barcode/worker.js"))
+(.. worker (addEventListener "message" (fn [e] (process-result e))))
+
+(defn get-search-area
+  "Returns the (un-scaled) video dimensions such as they appear in the video element.
+   I'm not sure I really understand what's going on here, so @me if it's wrong.
+   video should be a <video> DOM element."
+  [video]
+  (let [v  video
+        vw (. v -offsetWidth)
+        vh (. v -offsetHeight)
+        fw (. v -videoWidth)
+        fh (. v -videoHeight)
+        ws (/ fw vw)
+        hs (/ fh vh)]
+    (if (< ws hs)
+      (let [h (int (/ fh (/ hs ws)))]
+        {:x 0 :y (int (/ (- fh h) 2)) :w fw :h h})
+      (let [w (int (/ fw (/ ws hs)))]
+        {:x (int (/ (- fw w) 2)) :y 0 :w w :h fh}))))
+
+(defn scan-frame
+  "Request the current video frame be scanned for barcodes."
+  []
+  (let [search-area (get-search-area @video-ref)]
+    (println search-area)
+    (-> (. @grabber (grabFrame))
+        (.then #(.. worker (postMessage
+                            (clj->js  {:type "frame"
+                                       :frame %
+                                       :search search-area})))))))
+
+(defn handle-scan
+  "Check if the scanned frame contained a barcode and if so, dispatch it into re-frame. Whether the frame contained a barcode or not, start scanning the next frame."
+  [codes]
+  (if (seq codes)
+    (do
       (play-beep)
-      (println (first data))
-      (rf/dispatch [:scan (first data)])
+      (rf/dispatch [:scan (first codes)])
       (js/setTimeout scan-frame 1500))
     (scan-frame)))
 
-(def worker (js/Worker. "/barcode/zbar_worker.js"))
-(.. worker (addEventListener "message" (fn [e] (process-result e))))
+(defn process-result
+  "Dispatch incoming messages from the web-worker."
+  [raw_msg]
+  (let [msg     (js->clj (.-data raw_msg) :keywordize-keys true)
+        type    (:type msg)]
+    (case type
+      "ready" (scan-frame)
+      "scan"  (handle-scan (:codes msg)))))
 
-(defn start-wasm [s]
-  (.. worker (postMessage (clj->js (assoc s :init true)))))
+(defn init
+  "Tell the web-worker to initialize itself."
+  []
+  (.. worker (postMessage (clj->js {:type "init"}))))
 
-(defn scan-frame []
-  (let [grabber (:frame-grabber @state)
-        vid     (:video         @state)]
-    (-> (. grabber (grabFrame))
-        (.then #(.. worker (postMessage %))))))
+;; -------------------------------------------------------------------------------------------------
 
 (defn barcode-scanner
   "Show a video of the user's camera when available, and search it for barcodes."
-  [search-area]
-  [:div
-   [:video#vid {:style    (:video-element style)
-                :autoPlay true
-                :hidden   false
-                :ref      start-video!
-                :onPlay   #(start-wasm search-area)
-                :onClick  scan-frame}]])
+  [{:keys [style]}]
+  [:div {:style style}
+   [:video {:style    {:width "100%" :height "100%" :object-fit "cover"}
+            :autoPlay true
+            :ref      start-video!
+            :onPlay   init}]])

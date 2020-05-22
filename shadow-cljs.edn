@@ -14,7 +14,8 @@
  {:mobile
   {:target :browser
    :modules {:main {:init-fn grocy.mobile.main/init!}}
-   :devtools {:after-load grocy.mobile.main/reload!}}}}
+   :devtools {:after-load grocy.mobile.main/reload!}
+   :compiler-options {:output-feature-set :es8}}}}
 
 
 ;  :builds
