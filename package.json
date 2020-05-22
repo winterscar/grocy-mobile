@@ -7,8 +7,9 @@
   },
   "dependencies": {
     "react": "16.13.0",
-    "react-dom": "16.13.0",
-    "scandit-sdk": "^5.0.0",
-    "zbar.wasm": "^1.0.0"
+    "react-dom": "16.13.0"
+  },
+  "scripts": {
+    "build": "shadow-cljs release --verbose mobile"
   }
 }
