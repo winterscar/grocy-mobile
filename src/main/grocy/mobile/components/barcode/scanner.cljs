@@ -106,5 +106,7 @@
   [:div {:style style}
    [:video {:style    {:width "100%" :height "100%" :object-fit "cover"}
             :autoPlay true
+            :muted    true
+            :playsInline true
             :ref      start-video!
             :onPlay   init}]])
