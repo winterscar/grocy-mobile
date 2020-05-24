@@ -11,6 +11,7 @@
 (defn init!
   []
   (rf/dispatch-sync [:init])     ;; puts a value into application state
+  (rf/dispatch [:populate-products])
   (reagent/render
    [ui/main]
    (js/document.getElementById "app"))

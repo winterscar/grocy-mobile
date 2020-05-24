@@ -66,8 +66,7 @@
 (defn scan-frame
   "Request the current video frame be scanned for barcodes."
   []
-  (let [search-area (get-search-area @video-ref)]
-    (println search-area)
+  (let [search-area (get-search-area @video-ref)] 
     (-> (. @grabber (grabFrame))
         (.then #(.. worker (postMessage
                             (clj->js  {:type "frame"

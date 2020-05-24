@@ -18,8 +18,15 @@
 ;; good practice.
  
 (s/def ::barcode string?)
+(s/def ::product map?)
+(s/def ::products (s/coll-of ::product))
+(s/def ::dirty (s/nilable (s/coll-of keyword?)))
+(s/def ::current-product (s/keys :req-un [::dirty]))
+(s/def ::query string?)
+(s/def ::results (s/coll-of ::product))
+(s/def ::search (s/keys :opt-un [::query ::results]))
 ;; Database
-(s/def ::db (s/keys :opt-un [::barcode]))
+(s/def ::db (s/keys :opt-un [::barcode ::products ::current-product ::search]))
 
 ;; -- Default app-db Value  ---------------------------------------------------
 ;;

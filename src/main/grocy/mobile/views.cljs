@@ -1,7 +1,8 @@
 (ns grocy.mobile.views
    (:require
     [re-frame.core :as rf]
-    [grocy.mobile.components.barcode.scanner :refer [barcode-scanner]]))
+    [grocy.mobile.components.barcode.scanner :refer [barcode-scanner]]
+    [grocy.mobile.components.search :refer [search-bar]]))
 
 (def style
   {:wrapper 
@@ -23,4 +24,5 @@
 (defn main []
   [:div {:style (:wrapper style)}
    [barcode-scanner {:style (:barcode-scanner style)}]
-   [:div @(rf/subscribe [:barcode])]])
+   [:div (:name @(rf/subscribe [:current-product]))]
+   [search-bar]])

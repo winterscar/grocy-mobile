@@ -36,8 +36,8 @@
 ;; which manipulate todos.
 ;; A chain of interceptors is a vector of interceptors.
 ;; Explanation of the `path` Interceptor is given further below.
-(def some-path-interceptor [check-spec-interceptor    ;; ensure the spec is still valid  (after)
-                            (path :foo)])              ;; grab foo out of the app db 
+(def search-interceptor [check-spec-interceptor    ;; ensure the spec is still valid  (after)
+                         (path :search)])          ;; grab foo out of the app db 
 ;; -- Event Handlers ----------------------------------------------------------
 
 ;; usage:  (dispatch [:initialise-db])
@@ -50,6 +50,12 @@
  [check-spec-interceptor]
  (fn [_ _]
    default-db))
+
+(reg-event-db
+ :search/query
+ [search-interceptor]
+ (fn [search [_ query]]
+   (assoc search :query query)))
 
 (reg-event-db
  :scan
@@ -71,15 +77,52 @@
             :headers                {"GROCY-API-KEY" grocy-api-key}
             :mode                   :cors
             :credentials            "omit"
-            :timeout                5000
+            :timeout                2000
             :response-content-types {#"application/.*json" :json}
-            :on-success             [:lookup-success]
+            :on-success             [:select-product-success]
             :on-failure             [:lookup-failure]}}))
 
-(reg-event-db
- :lookup-success
+(reg-event-fx
+ :populate-products
  (fn
-   [db [_ response]]           ;; destructure the response from the event vector
-   (println response)
+   [_ _]
+   {:fetch {:method                 :get
+            :url                    (str grocy-api "/objects/products")
+            :headers                {"GROCY-API-KEY" grocy-api-key}
+            :mode                   :cors
+            :credentials            "omit"
+            :timeout                5000
+            :response-content-types {#"application/.*json" :json}
+            :on-success             [:products-success]
+            :on-failure             [:products-failure]}}))
+
+(reg-event-db
+ :products-success
+ [check-spec-interceptor]
+ (fn
+   [db [_ response]]
    (-> db
-       (assoc :data response))))  ;; fairly lame processing
+       (assoc :products (:body response)))))  ;; fairly lame processing
+
+(reg-event-fx
+ :select-product
+ (fn
+   [_ [_ id]]
+   {:fetch {:method                 :get
+            :url                    (str grocy-api "/objects/products/" id)
+            :headers                {"GROCY-API-KEY" grocy-api-key}
+            :mode                   :cors
+            :credentials            "omit"
+            :timeout                5000
+            :response-content-types {#"application/.*json" :json}
+            :on-success             [:select-product-success]
+            :on-failure             [:select-failure]}}))
+
+(reg-event-db
+ :select-product-success
+ [check-spec-interceptor]
+ (fn
+   [db [_ response]]
+   (-> db
+       (assoc :current-product
+              (assoc (:body response) :dirty nil)))))  ;; fairly lame processing
